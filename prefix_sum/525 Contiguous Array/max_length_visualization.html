@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最長平衡子陣列演算法圖解</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        input, button {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .visualization {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .array-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .array-element {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            background: white;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        
+        .array-element.zero {
+            background: linear-gradient(45deg, #ff9999, #ff6666);
+            color: white;
+        }
+        
+        .array-element.one {
+            background: linear-gradient(45deg, #99ccff, #6699ff);
+            color: white;
+        }
+        
+        .array-element.current {
+            transform: scale(1.2);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.8);
+            border-color: #ffd700;
+        }
+        
+        .array-element.in-subarray {
+            border: 4px solid #4CAF50;
+            background: linear-gradient(45deg, #c8e6c9, #4CAF50);
+        }
+        
+        .array-element::after {
+            content: attr(data-index);
+            position: absolute;
+            bottom: -25px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .prefix-sum-display {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .array-element.current .prefix-sum-display {
+            opacity: 1;
+        }
+        
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #4CAF50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .info-card h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+        
+        .info-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .prefix-map {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ffeaa7;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .prefix-map h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .map-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            margin: 3px 0;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            align-items: center;
+        }
+        
+        .map-entry.highlight {
+            background: #ffeb3b;
+            border-color: #ffc107;
+            animation: pulse 0.5s;
+        }
+        
+        .map-entry.found {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .step-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #2196F3;
+            margin-bottom: 20px;
+        }
+        
+        .step-info h4 {
+            margin: 0 0 10px 0;
+            color: #1976D2;
+        }
+        
+        .explanation {
+            background: #f3e5f5;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ce93d8;
+            margin-bottom: 20px;
+        }
+        
+        .explanation h3 {
+            color: #7b1fa2;
+            margin-top: 0;
+        }
+        
+        .subarray-display {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .subarray-display h4 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        
+        .speed-control {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .speed-control label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .speed-control input[type="range"] {
+            width: 200px;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 最長平衡子陣列演算法圖解</h1>
+        
+        <div class="explanation">
+            <h3>演算法原理</h3>
+            <p><strong>目標：</strong>找到包含相同數量0和1的最長連續子陣列。</p>
+            <p><strong>核心思想：</strong>將0視為-1，將1視為+1。如果一段子陣列的總和為0，代表0和1的數量相等。</p>
+            <p><strong>關鍵技巧：</strong>如果兩個位置的前綴和相同，那麼它們之間的子陣列總和為0！</p>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(45deg, #ff9999, #ff6666);"></div>
+                <span>數字 0 (視為 -1)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(45deg, #99ccff, #6699ff);"></div>
+                <span>數字 1 (視為 +1)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(45deg, #c8e6c9, #4CAF50); border-color: #4CAF50;"></div>
+                <span>最長平衡子陣列</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label>陣列 (只能包含0和1):</label>
+                <input type="text" id="arrayInput" value="0,1,0,0,1,1,0" placeholder="例: 0,1,0,0,1,1,0">
+            </div>
+            <button onclick="initVisualization()">重新開始</button>
+            <button id="nextBtn" onclick="nextStep()">下一步</button>
+            <button id="autoBtn" onclick="toggleAuto()">自動播放</button>
+        </div>
+        
+        <div class="speed-control">
+            <label for="speedRange">播放速度:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5">
+            <span id="speedValue">5</span>
+        </div>
+        
+        <div class="visualization">
+            <div class="array-container" id="arrayContainer"></div>
+            
+            <div class="info-panel">
+                <div class="info-card">
+                    <h3>當前位置</h3>
+                    <div class="value" id="currentIndex">-1</div>
+                </div>
+                <div class="info-card">
+                    <h3>當前數字</h3>
+                    <div class="value" id="currentNum">-</div>
+                </div>
+                <div class="info-card">
+                    <h3>前綴和</h3>
+                    <div class="value" id="prefixSum">0</div>
+                </div>
+                <div class="info-card">
+                    <h3>最長長度</h3>
+                    <div class="value" id="maxLength">0</div>
+                </div>
+            </div>
+            
+            <div class="step-info" id="stepInfo">
+                <h4>步驟說明</h4>
+                <p>點擊「重新開始」來初始化演算法</p>
+            </div>
+            
+            <div class="prefix-map">
+                <h4>前綴和位置映射表 (preDic)</h4>
+                <div id="prefixMapContent"></div>
+            </div>
+            
+            <div class="subarray-display" id="subarrayDisplay" style="display: none;">
+                <h4>當前最長平衡子陣列</h4>
+                <div id="subarrayInfo"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nums = [0,1,0,0,1,1,0];
+        let currentIndex = -1;
+        let prefixSum = 0;
+        let maxLength = 0;
+        let preDic = new Map();
+        let isRunning = false;
+        let autoInterval = null;
+        let bestSubarray = { start: -1, end: -1, length: 0 };
+        
+        const speedRange = document.getElementById('speedRange');
+        const speedValue = document.getElementById('speedValue');
+        
+        speedRange.addEventListener('input', function() {
+            speedValue.textContent = this.value;
+        });
+        
+        function initVisualization() {
+            // 解析輸入
+            const arrayStr = document.getElementById('arrayInput').value;
+            const inputNums = arrayStr.split(',').map(n => parseInt(n.trim()));
+            
+            // 驗證輸入
+            if (inputNums.some(n => n !== 0 && n !== 1)) {
+                alert('陣列只能包含0和1！');
+                return;
+            }
+            
+            nums = inputNums;
+            
+            // 重置狀態
+            currentIndex = -1;
+            prefixSum = 0;
+            maxLength = 0;
+            preDic = new Map();
+            preDic.set(0, -1); // 初始化：前綴和0出現在位置-1
+            bestSubarray = { start: -1, end: -1, length: 0 };
+            isRunning = false;
+            
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+            
+            // 更新UI
+            updateArrayDisplay();
+            updateInfoPanel();
+            updatePrefixMap();
+            updateStepInfo("演算法初始化完成。preDic[0] = -1 代表前綴和0在位置-1（開始前）出現過。");
+            document.getElementById('subarrayDisplay').style.display = 'none';
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('autoBtn').textContent = '自動播放';
+        }
+        
+        function updateArrayDisplay() {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+            
+            nums.forEach((num, index) => {
+                const element = document.createElement('div');
+                element.className = 'array-element';
+                element.textContent = num;
+                element.setAttribute('data-index', `i=${index}`);
+                
+                if (num === 0) {
+                    element.classList.add('zero');
+                } else {
+                    element.classList.add('one');
+                }
+                
+                if (index === currentIndex) {
+                    element.classList.add('current');
+                }
+                
+                // 標記最長子陣列
+                if (bestSubarray.length > 0 && 
+                    index >= bestSubarray.start && 
+                    index <= bestSubarray.end) {
+                    element.classList.add('in-subarray');
+                }
+                
+                // 添加前綴和顯示
+                const prefixSumDisplay = document.createElement('div');
+                prefixSumDisplay.className = 'prefix-sum-display';
+                if (index <= currentIndex) {
+                    let sum = 0;
+                    for (let i = 0; i <= index; i++) {
+                        sum += nums[i] === 0 ? -1 : 1;
+                    }
+                    prefixSumDisplay.textContent = `sum: ${sum}`;
+                }
+                element.appendChild(prefixSumDisplay);
+                
+                container.appendChild(element);
+            });
+        }
+        
+        function updateInfoPanel() {
+            document.getElementById('currentIndex').textContent = currentIndex;
+            document.getElementById('currentNum').textContent = currentIndex >= 0 ? nums[currentIndex] : '-';
+            document.getElementById('prefixSum').textContent = prefixSum;
+            document.getElementById('maxLength').textContent = maxLength;
+        }
+        
+        function updatePrefixMap() {
+            const container = document.getElementById('prefixMapContent');
+            container.innerHTML = '';
+            
+            // 按前綴和值排序顯示
+            const sortedEntries = Array.from(preDic.entries()).sort((a, b) => a[0] - b[0]);
+            
+            for (let [sum, index] of sortedEntries) {
+                const entry = document.createElement('div');
+                entry.className = 'map-entry';
+                entry.innerHTML = `
+                    <span>prefix_sum[${sum}]</span>
+                    <span>first at index ${index}</span>
+                `;
+                
+                // 高亮當前匹配的項目
+                if (currentIndex >= 0 && sum === prefixSum && index !== currentIndex) {
+                    entry.classList.add('found');
+                }
+                
+                container.appendChild(entry);
+            }
+        }
+        
+        function updateStepInfo(message) {
+            const stepInfo = document.getElementById('stepInfo');
+            stepInfo.innerHTML = `<h4>步驟 ${currentIndex + 1}</h4><p>${message}</p>`;
+        }
+        
+        function updateSubarrayDisplay() {
+            if (bestSubarray.length > 0) {
+                const display = document.getElementById('subarrayDisplay');
+                const info = document.getElementById('subarrayInfo');
+                display.style.display = 'block';
+                
+                const subarrayNums = nums.slice(bestSubarray.start, bestSubarray.end + 1);
+                const zeros = subarrayNums.filter(n => n === 0).length;
+                const ones = subarrayNums.filter(n => n === 1).length;
+                
+                info.innerHTML = `
+                    <p><strong>位置:</strong> ${bestSubarray.start} 到 ${bestSubarray.end}</p>
+                    <p><strong>長度:</strong> ${bestSubarray.length}</p>
+                    <p><strong>內容:</strong> [${subarrayNums.join(', ')}]</p>
+                    <p><strong>統計:</strong> ${zeros} 個 0，${ones} 個 1</p>
+                `;
+            }
+        }
+        
+        function nextStep() {
+            if (currentIndex >= nums.length - 1) {
+                updateStepInfo(`演算法執行完畢！最長平衡子陣列長度為 ${maxLength}。`);
+                document.getElementById('nextBtn').disabled = true;
+                if (autoInterval) {
+                    clearInterval(autoInterval);
+                    autoInterval = null;
+                    document.getElementById('autoBtn').textContent = '自動播放';
+                }
+                return;
+            }
+            
+            currentIndex++;
+            const currentNum = nums[currentIndex];
+            
+            // 更新前綴和（0當作-1，1當作+1）
+            prefixSum += (currentNum === 0) ? -1 : 1;
+            
+            let message = `處理 nums[${currentIndex}] = ${currentNum}<br>`;
+            message += `前綴和 ${prefixSum > 0 ? '+=' : currentNum === 0 ? '-=' : '+='} ${currentNum === 0 ? '-1' : '+1'} = ${prefixSum}<br>`;
+            
+            // 檢查這個前綴和是否之前出現過
+            if (preDic.has(prefixSum)) {
+                const prevIndex = preDic.get(prefixSum);
+                const length = currentIndex - prevIndex;
+                
+                message += `<span style="color: #4CAF50; font-weight: bold;">找到匹配！</span><br>`;
+                message += `前綴和 ${prefixSum} 在位置 ${prevIndex} 出現過<br>`;
+                message += `子陣列長度: ${currentIndex} - ${prevIndex} = ${length}<br>`;
+                
+                if (length > maxLength) {
+                    maxLength = length;
+                    bestSubarray = {
+                        start: prevIndex + 1,
+                        end: currentIndex,
+                        length: length
+                    };
+                    message += `<span style="color: #ff6600; font-weight: bold;">更新最長長度為 ${maxLength}！</span>`;
+                    updateSubarrayDisplay();
+                } else {
+                    message += `長度 ${length} 不大於當前最長長度 ${maxLength}`;
+                }
+            } else {
+                // 第一次出現這個前綴和，記錄位置
+                preDic.set(prefixSum, currentIndex);
+                message += `第一次出現前綴和 ${prefixSum}，記錄在位置 ${currentIndex}`;
+            }
+            
+            // 更新顯示
+            updateArrayDisplay();
+            updateInfoPanel();
+            updatePrefixMap();
+            updateStepInfo(message);
+        }
+        
+        function toggleAuto() {
+            const button = document.getElementById('autoBtn');
+            
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                button.textContent = '自動播放';
+            } else {
+                const speed = parseInt(speedRange.value);
+                const delay = 2200 - (speed * 200);
+                
+                autoInterval = setInterval(() => {
+                    if (currentIndex >= nums.length - 1) {
+                        clearInterval(autoInterval);
+                        autoInterval = null;
+                        button.textContent = '自動播放';
+                        return;
+                    }
+                    nextStep();
+                }, delay);
+                
+                button.textContent = '停止播放';
+            }
+        }
+        
+        // 初始化
+        initVisualization();
+    </script>
+</body>
+</html>

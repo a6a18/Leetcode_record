@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>子陣列總和演算法圖解</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        input, button {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .visualization {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .array-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .array-element {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            background: white;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        
+        .array-element.current {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        .array-element::after {
+            content: attr(data-index);
+            position: absolute;
+            bottom: -25px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #4CAF50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .info-card h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+        
+        .info-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .prefix-map {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ffeaa7;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .prefix-map h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .map-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            margin: 3px 0;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .map-entry.highlight {
+            background: #ffeb3b;
+            border-color: #ffc107;
+            animation: pulse 0.5s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .step-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #2196F3;
+            margin-bottom: 20px;
+        }
+        
+        .step-info h4 {
+            margin: 0 0 10px 0;
+            color: #1976D2;
+        }
+        
+        .explanation {
+            background: #f3e5f5;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ce93d8;
+            margin-bottom: 20px;
+        }
+        
+        .explanation h3 {
+            color: #7b1fa2;
+            margin-top: 0;
+        }
+        
+        .found-subarray {
+            background: #c8e6c9;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .speed-control {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .speed-control label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .speed-control input[type="range"] {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 子陣列總和演算法圖解</h1>
+        
+        <div class="explanation">
+            <h3>演算法原理</h3>
+            <p><strong>核心概念：</strong>使用前綴和(prefix sum)的概念。如果從位置0到i的總和是sum1，從位置0到j的總和是sum2，那麼從位置i+1到j的子陣列總和就是sum2-sum1。</p>
+            <p><strong>關鍵思路：</strong>對於每個位置，我們檢查是否存在之前的前綴和，使得 current_prefix_sum - previous_prefix_sum = k</p>
+        </div>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label>陣列 (用逗號分隔):</label>
+                <input type="text" id="arrayInput" value="1,1,1" placeholder="例: 1,1,1">
+            </div>
+            <div class="input-group">
+                <label>目標總和 k:</label>
+                <input type="number" id="kInput" value="2">
+            </div>
+            <button onclick="initVisualization()">重新開始</button>
+            <button id="nextBtn" onclick="nextStep()">下一步</button>
+            <button id="autoBtn" onclick="toggleAuto()">自動播放</button>
+        </div>
+        
+        <div class="speed-control">
+            <label for="speedRange">播放速度:</label>
+            <input type="range" id="speedRange" min="1" max="10" value="5">
+            <span id="speedValue">5</span>
+        </div>
+        
+        <div class="visualization">
+            <div class="array-container" id="arrayContainer"></div>
+            
+            <div class="info-panel">
+                <div class="info-card">
+                    <h3>當前步驟</h3>
+                    <div class="value" id="currentStep">0</div>
+                </div>
+                <div class="info-card">
+                    <h3>當前數字</h3>
+                    <div class="value" id="currentNum">-</div>
+                </div>
+                <div class="info-card">
+                    <h3>前綴和</h3>
+                    <div class="value" id="prefixSum">0</div>
+                </div>
+                <div class="info-card">
+                    <h3>找到的子陣列數</h3>
+                    <div class="value" id="count">0</div>
+                </div>
+            </div>
+            
+            <div class="step-info" id="stepInfo">
+                <h4>步驟說明</h4>
+                <p>點擊「重新開始」來初始化演算法</p>
+            </div>
+            
+            <div class="prefix-map">
+                <h4>前綴和映射表 (prefix_map)</h4>
+                <div id="prefixMapContent"></div>
+            </div>
+            
+            <div id="foundSubarrays"></div>
+        </div>
+    </div>
+
+    <script>
+        let nums = [1, 1, 1];
+        let k = 2;
+        let currentIndex = -1;
+        let prefixSum = 0;
+        let count = 0;
+        let prefixMap = new Map();
+        let isRunning = false;
+        let autoInterval = null;
+        let foundSubarrays = [];
+        
+        const speedRange = document.getElementById('speedRange');
+        const speedValue = document.getElementById('speedValue');
+        
+        speedRange.addEventListener('input', function() {
+            speedValue.textContent = this.value;
+        });
+        
+        function initVisualization() {
+            // 解析輸入
+            const arrayStr = document.getElementById('arrayInput').value;
+            nums = arrayStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+            k = parseInt(document.getElementById('kInput').value) || 2;
+            
+            // 重置狀態
+            currentIndex = -1;
+            prefixSum = 0;
+            count = 0;
+            prefixMap = new Map();
+            prefixMap.set(0, 1); // 初始化
+            foundSubarrays = [];
+            isRunning = false;
+            
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+            
+            // 更新UI
+            updateArrayDisplay();
+            updateInfoPanel();
+            updatePrefixMap();
+            updateStepInfo("演算法初始化完成。prefix_map[0] = 1 是為了處理從開頭就總和為k的情況。");
+            document.getElementById('foundSubarrays').innerHTML = '';
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('autoBtn').textContent = '自動播放';
+        }
+        
+        function updateArrayDisplay() {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+            
+            nums.forEach((num, index) => {
+                const element = document.createElement('div');
+                element.className = 'array-element';
+                element.textContent = num;
+                element.setAttribute('data-index', `i=${index}`);
+                
+                if (index === currentIndex) {
+                    element.classList.add('current');
+                }
+                
+                container.appendChild(element);
+            });
+        }
+        
+        function updateInfoPanel() {
+            document.getElementById('currentStep').textContent = currentIndex + 1;
+            document.getElementById('currentNum').textContent = currentIndex >= 0 ? nums[currentIndex] : '-';
+            document.getElementById('prefixSum').textContent = prefixSum;
+            document.getElementById('count').textContent = count;
+        }
+        
+        function updatePrefixMap() {
+            const container = document.getElementById('prefixMapContent');
+            container.innerHTML = '';
+            
+            for (let [sum, freq] of prefixMap.entries()) {
+                const entry = document.createElement('div');
+                entry.className = 'map-entry';
+                entry.innerHTML = `<span>prefix_sum[${sum}]</span><span>${freq}</span>`;
+                
+                // 高亮當前相關的項目
+                if (currentIndex >= 0 && sum === prefixSum - k) {
+                    entry.classList.add('highlight');
+                }
+                
+                container.appendChild(entry);
+            }
+        }
+        
+        function updateStepInfo(message) {
+            const stepInfo = document.getElementById('stepInfo');
+            stepInfo.innerHTML = `<h4>步驟 ${currentIndex + 1}</h4><p>${message}</p>`;
+        }
+        
+        function nextStep() {
+            if (currentIndex >= nums.length - 1) {
+                updateStepInfo(`演算法執行完畢！總共找到 ${count} 個總和為 ${k} 的子陣列。`);
+                document.getElementById('nextBtn').disabled = true;
+                if (autoInterval) {
+                    clearInterval(autoInterval);
+                    autoInterval = null;
+                    document.getElementById('autoBtn').textContent = '自動播放';
+                }
+                return;
+            }
+            
+            currentIndex++;
+            const currentNum = nums[currentIndex];
+            prefixSum += currentNum;
+            
+            // 檢查是否存在 prefix_sum - k
+            const target = prefixSum - k;
+            const found = prefixMap.get(target) || 0;
+            count += found;
+            
+            if (found > 0) {
+                foundSubarrays.push({
+                    endIndex: currentIndex,
+                    count: found,
+                    target: target
+                });
+                
+                // 顯示找到的子陣列
+                const foundDiv = document.getElementById('foundSubarrays');
+                const subarrayDiv = document.createElement('div');
+                subarrayDiv.className = 'found-subarray';
+                subarrayDiv.innerHTML = `
+                    <strong>找到 ${found} 個子陣列！</strong><br>
+                    在位置 ${currentIndex} 結束，需要前綴和為 ${target} 的起始位置
+                `;
+                foundDiv.appendChild(subarrayDiv);
+            }
+            
+            // 更新 prefix_map
+            prefixMap.set(prefixSum, (prefixMap.get(prefixSum) || 0) + 1);
+            
+            // 更新顯示
+            updateArrayDisplay();
+            updateInfoPanel();
+            updatePrefixMap();
+            
+            let message = `處理 nums[${currentIndex}] = ${currentNum}<br>`;
+            message += `prefix_sum = ${prefixSum}<br>`;
+            message += `尋找 prefix_sum - k = ${prefixSum} - ${k} = ${target}<br>`;
+            
+            if (found > 0) {
+                message += `<span style="color: #4CAF50; font-weight: bold;">找到 ${found} 個符合的前綴和！</span><br>`;
+            } else {
+                message += `沒有找到符合的前綴和<br>`;
+            }
+            
+            message += `將當前前綴和 ${prefixSum} 加入映射表`;
+            
+            updateStepInfo(message);
+        }
+        
+        function toggleAuto() {
+            const button = document.getElementById('autoBtn');
+            
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                button.textContent = '自動播放';
+            } else {
+                const speed = parseInt(speedRange.value);
+                const delay = 2200 - (speed * 200); // 從2000ms到200ms
+                
+                autoInterval = setInterval(() => {
+                    if (currentIndex >= nums.length - 1) {
+                        clearInterval(autoInterval);
+                        autoInterval = null;
+                        button.textContent = '自動播放';
+                        return;
+                    }
+                    nextStep();
+                }, delay);
+                
+                button.textContent = '停止播放';
+            }
+        }
+        
+        // 初始化
+        initVisualization();
+    </script>
+</body>
+</html>
