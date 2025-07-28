@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 238 - 兩次循環詳解</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                text-align: center;
+                color: #4a5568;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+            }
+
+            .concept-box {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                padding: 25px;
+                border-radius: 15px;
+                margin-bottom: 30px;
+                color: white;
+                font-size: 1.2em;
+                text-align: center;
+            }
+
+            .step-container {
+                margin-bottom: 40px;
+                background: white;
+                border-radius: 15px;
+                padding: 25px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+                border-left: 5px solid #4299e1;
+            }
+
+            .step-title {
+                font-size: 1.8em;
+                font-weight: bold;
+                color: #2d3748;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            .visual-array {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 30px 0;
+                flex-wrap: wrap;
+            }
+
+            .array-item {
+                background: linear-gradient(135deg, #81ecec, #74b9ff);
+                color: white;
+                padding: 20px;
+                margin: 10px;
+                border-radius: 12px;
+                font-size: 1.5em;
+                font-weight: bold;
+                min-width: 80px;
+                text-align: center;
+                position: relative;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            }
+
+            .index-tag {
+                position: absolute;
+                top: -12px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #2d3748;
+                color: white;
+                padding: 4px 10px;
+                border-radius: 8px;
+                font-size: 0.7em;
+            }
+
+            .highlight {
+                background: linear-gradient(
+                    135deg,
+                    #ff6b6b,
+                    #ee5a24
+                ) !important;
+                transform: scale(1.1);
+                animation: glow 1.5s infinite;
+            }
+
+            .left-product {
+                background: linear-gradient(
+                    135deg,
+                    #a8e6cf,
+                    #7fcdcd
+                ) !important;
+            }
+
+            .right-product {
+                background: linear-gradient(
+                    135deg,
+                    #ffeaa7,
+                    #fdcb6e
+                ) !important;
+            }
+
+            @keyframes glow {
+                0%,
+                100% {
+                    box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+                }
+                50% {
+                    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6);
+                }
+            }
+
+            .explanation {
+                background: #f8f9fa;
+                padding: 25px;
+                border-radius: 12px;
+                margin: 20px 0;
+                border-left: 4px solid #28a745;
+                font-size: 1.1em;
+                line-height: 1.8;
+            }
+
+            .formula {
+                background: linear-gradient(135deg, #ffecd2, #fcb69f);
+                padding: 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+                text-align: center;
+                font-size: 1.3em;
+                font-weight: bold;
+                color: #2d3748;
+            }
+
+            .demo-section {
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                padding: 30px;
+                border-radius: 15px;
+                margin: 25px 0;
+            }
+
+            .controls {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            button {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 25px;
+                font-size: 1.1em;
+                cursor: pointer;
+                margin: 10px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            }
+
+            .phase-indicator {
+                text-align: center;
+                margin: 20px 0;
+                font-size: 1.3em;
+                font-weight: bold;
+                padding: 15px;
+                border-radius: 10px;
+            }
+
+            .phase-1 {
+                background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
+                color: white;
+            }
+
+            .phase-2 {
+                background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+                color: #2d3748;
+            }
+
+            .calculation-detail {
+                background: rgba(255, 255, 255, 0.9);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 15px 0;
+                border: 2px solid #4299e1;
+                font-size: 1.1em;
+            }
+
+            .side-by-side {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin: 20px 0;
+                gap: 20px;
+            }
+
+            .side-box {
+                flex: 1;
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .code-simple {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Courier New', monospace;
+                font-size: 1.1em;
+                line-height: 1.6;
+                margin: 15px 0;
+            }
+
+            .key-insight {
+                background: linear-gradient(135deg, #ff9a9e, #fecfef);
+                padding: 25px;
+                border-radius: 12px;
+                margin: 20px 0;
+                text-align: center;
+                font-size: 1.2em;
+                font-weight: bold;
+                color: #2d3748;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔄 兩次循環的核心思路詳解</h1>
+
+            <div class="concept-box">
+                <h3>💡 核心概念</h3>
+                <p>每個位置的答案 = 左邊所有數的乘積 × 右邊所有數的乘積</p>
+                <p>用兩次循環分別計算這兩部分！</p>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">🎯 為什麼要兩次循環？</div>
+
+                <div class="key-insight">
+                    一次循環解決不了問題！<br />
+                    因為我們需要「未來的信息」（右邊的數）
+                </div>
+
+                <div class="side-by-side">
+                    <div class="side-box">
+                        <h4 style="color: #28a745">✅ 第一次循環能做什麼？</h4>
+                        <p>
+                            從左到右遍歷時，我們知道每個位置<strong>左邊</strong>有什麼數字
+                        </p>
+                        <p>所以可以計算「左邊乘積」</p>
+                    </div>
+                    <div class="side-box">
+                        <h4 style="color: #dc3545">
+                            ❌ 第一次循環做不到什麼？
+                        </h4>
+                        <p>
+                            從左到右遍歷時，我們不知道每個位置<strong>右邊</strong>有什麼數字
+                        </p>
+                        <p>所以無法計算「右邊乘積」</p>
+                    </div>
+                </div>
+
+                <div class="formula">
+                    解決方案：第二次循環從右往左，專門處理「右邊乘積」！
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">🔍 逐步分解理解</div>
+
+                <div class="demo-section">
+                    <h4 style="text-align: center">
+                        示例：nums = [2, 3, 4, 5]
+                    </h4>
+
+                    <div class="controls">
+                        <button onclick="showPhase(1)">第一次循環</button>
+                        <button onclick="showPhase(2)">第二次循環</button>
+                        <button onclick="showPhase(3)">完整過程</button>
+                        <button onclick="reset()">重置</button>
+                    </div>
+
+                    <div id="demo-area">
+                        <div class="visual-array">
+                            <div class="array-item">
+                                <div class="index-tag">0</div>
+                                2
+                            </div>
+                            <div class="array-item">
+                                <div class="index-tag">1</div>
+                                3
+                            </div>
+                            <div class="array-item">
+                                <div class="index-tag">2</div>
+                                4
+                            </div>
+                            <div class="array-item">
+                                <div class="index-tag">3</div>
+                                5
+                            </div>
+                        </div>
+                        <p style="text-align: center; font-size: 1.1em">
+                            點擊按鈕開始理解兩次循環的作用
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">📝 代碼對照理解</div>
+
+                <div class="explanation">
+                    <h4>第一次循環（計算左邊乘積）：</h4>
+                    <div class="code-simple">
+                        for i in range(1, n): result[i] = result[i-1] *
+                        nums[i-1]
+                    </div>
+                    <p>
+                        <strong>解讀：</strong>result[i] 存的是 nums[0] 到
+                        nums[i-1] 的乘積
+                    </p>
+                </div>
+
+                <div class="explanation">
+                    <h4>第二次循環（合併右邊乘積）：</h4>
+                    <div class="code-simple">
+                        right = 1 for i in range(n-1, -1, -1): result[i] *=
+                        right # 左邊乘積 × 右邊乘積 right *= nums[i] #
+                        更新right為下次準備
+                    </div>
+                    <p>
+                        <strong>解讀：</strong>right
+                        變量追蹤從當前位置往右所有數的乘積
+                    </p>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">🧠 記憶技巧</div>
+
+                <div class="key-insight">
+                    想象成「時光機」問題：<br /><br />
+                    🕐 第一次循環：我們有「過去的記憶」（左邊的數）<br />
+                    🕑 第二次循環：我們收集「未來的信息」（右邊的數）<br /><br />
+                    兩個信息合併 = 完整答案！
+                </div>
+
+                <div class="formula">
+                    第一次：收集過去 → result[i] = 左邊乘積<br />
+                    第二次：結合未來 → result[i] = 左邊乘積 × 右邊乘積
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function reset() {
+                document.getElementById('demo-area').innerHTML = `
+                <div class="visual-array">
+                    <div class="array-item">
+                        <div class="index-tag">0</div>
+                        2
+                    </div>
+                    <div class="array-item">
+                        <div class="index-tag">1</div>
+                        3
+                    </div>
+                    <div class="array-item">
+                        <div class="index-tag">2</div>
+                        4
+                    </div>
+                    <div class="array-item">
+                        <div class="index-tag">3</div>
+                        5
+                    </div>
+                </div>
+                <p style="text-align: center; font-size: 1.1em;">點擊按鈕開始理解兩次循環的作用</p>
+            `;
+            }
+
+            function showPhase(phase) {
+                const demoArea = document.getElementById('demo-area');
+
+                if (phase === 1) {
+                    demoArea.innerHTML = `
+                    <div class="phase-indicator phase-1">
+                        🔄 第一次循環：從左到右，計算每個位置左邊的乘積
+                    </div>
+                    
+                    <h4>原數組 nums:</h4>
+                    <div class="visual-array">
+                        <div class="array-item">
+                            <div class="index-tag">0</div>
+                            2
+                        </div>
+                        <div class="array-item">
+                            <div class="index-tag">1</div>
+                            3
+                        </div>
+                        <div class="array-item">
+                            <div class="index-tag">2</div>
+                            4
+                        </div>
+                        <div class="array-item">
+                            <div class="index-tag">3</div>
+                            5
+                        </div>
+                    </div>
+                    
+                    <h4>第一次循環後的 result:</h4>
+                    <div class="visual-array">
+                        <div class="array-item left-product">
+                            <div class="index-tag">0</div>
+                            1
+                        </div>
+                        <div class="array-item left-product">
+                            <div class="index-tag">1</div>
+                            2
+                        </div>
+                        <div class="array-item left-product">
+                            <div class="index-tag">2</div>
+                            6
+                        </div>
+                        <div class="array-item left-product">
+                            <div class="index-tag">3</div>
+                            24
+                        </div>
+                    </div>
+                    
+                    <div class="calculation-detail">
+                        <h4>計算過程：</h4>
+                        <p><strong>result[0] = 1</strong> （左邊沒有數字）</p>
+                        <p><strong>result[1] = 2</strong> （左邊只有nums[0]=2）</p>
+                        <p><strong>result[2] = 2×3 = 6</strong> （左邊有nums[0],nums[1]）</p>
+                        <p><strong>result[3] = 2×3×4 = 24</strong> （左邊有nums[0],nums[1],nums[2]）</p>
+                    </div>
+                    
+                    <div class="key-insight">
+                        現在 result[i] 存的是位置 i 左邊所有數的乘積！<br>
+                        但我們還需要右邊的乘積...
+                    </div>
+                `;
+                } else if (phase === 2) {
+                    demoArea.innerHTML = `
+                    <div class="phase-indicator phase-2">
+                        🔄 第二次循環：從右到左，乘上右邊的乘積
+                    </div>
+                    
+                    <h4>第一次循環的結果（左邊乘積）:</h4>
+                    <div class="visual-array">
+                        <div class="array-item left-product">
+                            <div class="index-tag">0</div>
+                            1
+                        </div>
+                        <div class="array-item left-product">
+                            <div class="index-tag">1</div>
+                            2
+                        </div>
+                        <div class="array-item left-product">
+                            <div class="index-tag">2</div>
+                            6
+                        </div>
+                        <div class="array-item left-product">
+                            <div class="index-tag">3</div>
+                            24
+                        </div>
+                    </div>
+                    
+                    <h4>第二次循環後的最終結果:</h4>
+                    <div class="visual-array">
+                        <div class="array-item right-product">
+                            <div class="index-tag">0</div>
+                            60
+                        </div>
+                        <div class="array-item right-product">
+                            <div class="index-tag">1</div>
+                            40
+                        </div>
+                        <div class="array-item right-product">
+                            <div class="index-tag">2</div>
+                            30
+                        </div>
+                        <div class="array-item right-product">
+                            <div class="index-tag">3</div>
+                            24
+                        </div>
+                    </div>
+                    
+                    <div class="calculation-detail">
+                        <h4>第二次循環過程（從右往左）:</h4>
+                        <p><strong>i=3:</strong> result[3] = 24 × 1 = 24，right變成5</p>
+                        <p><strong>i=2:</strong> result[2] = 6 × 5 = 30，right變成5×4=20</p>
+                        <p><strong>i=1:</strong> result[1] = 2 × 20 = 40，right變成20×3=60</p>
+                        <p><strong>i=0:</strong> result[0] = 1 × 60 = 60</p>
+                    </div>
+                    
+                    <div class="key-insight">
+                        每步都是：左邊乘積 × 右邊乘積 = 最終答案！
+                    </div>
+                `;
+                } else if (phase === 3) {
+                    demoArea.innerHTML = `
+                    <div class="phase-indicator">
+                        🎯 完整過程總覽
+                    </div>
+                    
+                    <div class="side-by-side">
+                        <div class="side-box">
+                            <h4 style="color: #28a745;">第一次循環的使命</h4>
+                            <p>遍歷方向：→</p>
+                            <p>目標：計算每個位置左邊的乘積</p>
+                            <p>結果：[1, 2, 6, 24]</p>
+                        </div>
+                        <div class="side-box">
+                            <h4 style="color: #fd79a8;">第二次循環的使命</h4>
+                            <p>遍歷方向：←</p>
+                            <p>目標：乘上每個位置右邊的乘積</p>
+                            <p>結果：[60, 40, 30, 24]</p>
+                        </div>
+                    </div>
+                    
+                    <div class="formula">
+                        驗證答案：<br>
+                        nums[0]除外的乘積 = 3×4×5 = 60 ✓<br>
+                        nums[1]除外的乘積 = 2×4×5 = 40 ✓<br>
+                        nums[2]除外的乘積 = 2×3×5 = 30 ✓<br>
+                        nums[3]除外的乘積 = 2×3×4 = 24 ✓
+                    </div>
+                    
+                    <div class="key-insight">
+                        🧠 記住：兩次循環不是重複工作，而是分工合作！<br>
+                        第一次收集「過去」，第二次整合「未來」
+                    </div>
+                `;
+                }
+            }
+        </script>
+    </body>
+</html>
